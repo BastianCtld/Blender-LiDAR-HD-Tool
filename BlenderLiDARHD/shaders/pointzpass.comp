@@ -1,0 +1,28 @@
+void main() {
+    if(gl_GlobalInvocationID.x >= pointCount) {
+        return;
+    }
+    ivec2 image_size = imageSize(depthImage);
+    ivec2 point_image_size = imageSize(points);
+    vec4 pointPixel = imageLoad(points, ivec2(gl_GlobalInvocationID.x % point_image_size.x, gl_GlobalInvocationID.x / point_image_size.x));
+
+    int X = floatBitsToInt(pointPixel.x);
+    int Y = floatBitsToInt(pointPixel.y);
+    int Z = floatBitsToInt(pointPixel.z);
+
+    const ivec3 inverseScale = ivec3((int)(1/scale.x), (int)(1/scale.y), (int)(1/scale.z));
+
+    vec3 world_pos = vec3(X + (int)offset.x*inverseScale.x, Y + (int)offset.y*inverseScale.y, Z + (int)offset.z*inverseScale.z) * scale;
+    vec4 pos = viewProjectionMatrix * vec4(world_pos, 1.0f);
+
+    pos.xyz = pos.xyz/pos.w;
+    
+    ivec2 pixel = ivec2((pos.xy * 0.5 + 0.5) * vec2(image_size));
+    if (pixel.x < 0 || pixel.y < 0 || pixel.x >= image_size.x || pixel.y >= image_size.y) {
+            return;
+    }
+
+    int depth = int((pos.z * 0.5 + 0.5) * 2147483647.0);
+
+    imageAtomicMin(depthImage, pixel, depth);
+}

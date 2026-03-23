@@ -1,0 +1,8 @@
+laspy==2.7.0
+lazrs==0.8.1
+lxml==6.0.2
+owslib==0.35.0
+pillow==12.1.1
+psutil==7.1.1
+python_dateutil==2.9.0
+six==1.17.0
