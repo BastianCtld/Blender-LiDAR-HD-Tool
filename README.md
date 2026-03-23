@@ -12,7 +12,9 @@ The point clouds are rendered in the 3D viewport using a custom GPU shader, and 
 
 This add-on is designed to provide a lightweight preview of the point clouds to use as a reference for modeling over. Its RAM usage is configurable to be as much or as little as you want.
 
- When needed, this add-on can convert the point clouds into Blender's native Point Cloud objects, for further use with Geometry Nodes, Shader Nodes, and as a shrinkwrap base.
+When needed, this add-on can convert the point clouds into Blender's native Point Cloud objects, for further use with Geometry Nodes, Shader Nodes, and as a shrinkwrap base.
+
+LiDAR HD Tool is compatible with MacOS, Linux and Windows.
 
 > [!WARNING]
 > Only the Vulkan and Metal backends are supported for visualization.
