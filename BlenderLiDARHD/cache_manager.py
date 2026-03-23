@@ -4,6 +4,10 @@ import requests
 import threading
 import time
 
+headers = {
+    "User-Agent": "LiDARHDTool/1.1.1 (Blender add-on; https://github.com/BastianCtld/Blender-LiDAR-HD-Tool)"
+}
+
 def get_cache_tile_dir():
     return bpy.context.preferences.addons[__package__].preferences.cache_dir + "/copc_cache"
 def get_cache_texture_dir():
@@ -44,7 +48,7 @@ def point_cloud_get_thread(path, cached_file_name, converted_paths):
     print(f"Downloading {path}...")
     try:
         with open(cached_file_name, 'wb') as file:
-            file.write(requests.get(path, timeout=30).content)
+            file.write(requests.get(path, timeout=30, headers=headers).content)
         converted_paths.append(cached_file_name)
     except:
         print("Download of {path} failed !")
