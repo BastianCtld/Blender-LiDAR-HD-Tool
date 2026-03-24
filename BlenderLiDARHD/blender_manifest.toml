@@ -11,7 +11,7 @@ maintainer = "Bastian Cataldi"
 type = "add-on"
 
 # Optional link to documentation, support, source files, etc
-# website = "https://extensions.blender.org/add-ons/my-example-package/"
+website = "https://github.com/BastianCtld/Blender-LiDAR-HD-Tool"
 
 # Optional list defined by Blender and server, see:
 # https://docs.blender.org/manual/en/dev/advanced/extensions/tags.html
