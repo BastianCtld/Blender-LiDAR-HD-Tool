@@ -20,7 +20,7 @@ LiDAR HD Tool is compatible with MacOS, Linux and Windows.
 > Only the Vulkan and Metal backends are supported for visualization.
 
 ![](images/ouéssant.jpeg)
-*The island of Ouéssant in 1:1 scale in Blender. 10 points per square metre.*
+*The island of Ouéssant in 1:1 scale in Blender.*
 
 ![](images/nevers_classes.jpeg)
 *Points tinted by their class and shaded by their signal strength in Nevers.*
