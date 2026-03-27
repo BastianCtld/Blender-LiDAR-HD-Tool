@@ -314,7 +314,8 @@ def loading_process(target_ram_usage: int,
                 new_thread = threading.Thread(target=load_tile_image, args=(tile, addon_state.texture_resolutions[tile.loaded_level], addon_state.online_access))
                 new_thread.start()
                 
-            if tile.array_ready_for_sending():
+            if tile.array_ready_for_sending() and not tile_export_pipe.poll():
+                export_is_availabe.value = 0
                 shm.buf[:tile.image_array.nbytes] = tile.image_array.tobytes()
                 image_loading_pipe.send((path_dict[tile], tile.loaded_image_res, tile.image_array.nbytes))
                 image_loading_pipe.recv()
