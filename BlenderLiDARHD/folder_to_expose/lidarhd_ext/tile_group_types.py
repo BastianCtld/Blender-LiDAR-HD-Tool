@@ -4,12 +4,14 @@ import laspy
 # some state from the addon bundled in a format sendable to other processes
 class AddonStatePack():
     camera_pivot_position: np.ndarray
+    point_cloud_offset: np.ndarray
     minimum_radii: list[int]
     texture_resolutions: list[int]
     online_access: bool
     
-    def __init__(self, camera_pivot_position, minimum_radii, texture_resolutions, online_access):
+    def __init__(self, camera_pivot_position, point_cloud_offset, minimum_radii, texture_resolutions, online_access):
         self.camera_pivot_position = camera_pivot_position
+        self.point_cloud_offset = point_cloud_offset
         self.minimum_radii = minimum_radii
         self.texture_resolutions = texture_resolutions
         self.online_access = online_access
@@ -30,8 +32,8 @@ class TileDrawingData():
         self.level_vertex_indices = level_vertex_indices
         self.loaded_level = loaded_level
         
-    def distance_from_position(self, global_center: np.ndarray, position: np.ndarray, in3d: bool=False):
-        tile_scene_center = self.center - global_center
+    def distance_from_position(self, global_center: np.ndarray, tile_offset: np.ndarray, position: np.ndarray, in3d: bool=False):
+        tile_scene_center = self.center - global_center + tile_offset
         if in3d:
             distance = np.linalg.norm(position-tile_scene_center)
         else:
@@ -72,8 +74,8 @@ class TileLoadingData():
     def get_level_count(self) -> int:
         return len(self.level_point_counts) # faster than max(entry.key.level for entry in hierarchy.entries)
     
-    def distance_from_position(self, global_center: np.ndarray, position: np.ndarray, in3d: bool=False):
-        tile_scene_center = self.reader.copc_info.center - global_center
+    def distance_from_position(self, global_center: np.ndarray, tile_offset: np.ndarray, position: np.ndarray, in3d: bool=False):
+        tile_scene_center = self.reader.copc_info.center - global_center + tile_offset
         if in3d:
             distance = np.linalg.norm(position-tile_scene_center)
         else:

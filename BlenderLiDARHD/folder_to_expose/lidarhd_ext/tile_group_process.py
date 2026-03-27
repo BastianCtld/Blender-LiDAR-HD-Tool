@@ -27,7 +27,7 @@ def loading_process(target_ram_usage: int,
     
     def loading_needed(addon_state: AddonStatePack, tiles: list[TileLoadingData], global_center: np.ndarray, pool_occupancy_list: list) -> bool:
         for tile in tiles:
-            distance_from_camera = tile.distance_from_position(global_center, addon_state.camera_pivot_position)
+            distance_from_camera = tile.distance_from_position(global_center, addon_state.point_cloud_offset, addon_state.camera_pivot_position)
             required_level = None
             for level in range(min(len(addon_state.minimum_radii), len(tile.level_point_counts))):
                 if distance_from_camera < addon_state.minimum_radii[level]:
@@ -48,7 +48,7 @@ def loading_process(target_ram_usage: int,
     
         distances: list[(TileLoadingData, float)] = []
         for tile in tiles:
-            distance_from_camera = tile.distance_from_position(global_center, addon_state.camera_pivot_position)
+            distance_from_camera = tile.distance_from_position(global_center, addon_state.point_cloud_offset, addon_state.camera_pivot_position)
             distances.append((tile,distance_from_camera))
         distances.sort(key=lambda t:t[1])
     

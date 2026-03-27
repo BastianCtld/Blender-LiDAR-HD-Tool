@@ -149,6 +149,7 @@ class TileGroup():
             # print("Main process sends addonstatepack")
             self.state_pipe.send(AddonStatePack(
                 view_manager.camera_pivot_position,
+                np.array(bpy.context.scene.lidar_hd.point_cloud_offset),
                 list(bpy.context.scene.lidar_hd.minimum_radii),
                 list(bpy.context.scene.lidar_hd.texture_resolutions),
                 bpy.app.online_access
@@ -186,7 +187,7 @@ class TileGroup():
             
             gpu.state.depth_test_set('LESS_EQUAL')
         
-            distance_from_cam = tile.distance_from_position(self.global_center, camera_position, in3d=True)
+            distance_from_cam = tile.distance_from_position(self.global_center, np.array(bpy.context.scene.lidar_hd.point_cloud_offset), camera_position, in3d=True)
             adjusted_distance = max(1, distance_from_cam-500)
             level = int(np.power(1/((adjusted_distance/(6000*bpy.context.scene.lidar_hd.lod_multiplier))**2), 1/3.8))
             bound_level = min(tile.loaded_level, max(0, level))
@@ -204,7 +205,7 @@ class TileGroup():
         closest_tile = None
         closest_distance = 100000000
         for path, tile in self.path_to_tile_drawing_data.items():
-            distance = tile.distance_from_position(self.global_center, view_manager.camera_pivot_position)
+            distance = tile.distance_from_position(self.global_center, np.array(bpy.context.scene.lidar_hd.point_cloud_offset), view_manager.camera_pivot_position)
             if distance < closest_distance:
                 closest_path = path
                 closest_tile = tile
