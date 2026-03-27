@@ -78,7 +78,7 @@ This will install all the wheels for every platform into the "wheels" folder, an
 
 ## Known limitations
 
-- The camera hitches when loading in new tiles. This is currently unavoidable because GPUBatch creation blocks the UI thread, and lazrs seems to block it as well when decompressing the fetched points.
+- The camera hitches when loading in new tiles. This is currently unavoidable because GPUBatch creation blocks the UI thread.
 - Exporting the point cloud doesn't keep the BD Ortho aerial image colors. I can't imagine a use case for it to justify the development of the feature.
 
 ## Contact
