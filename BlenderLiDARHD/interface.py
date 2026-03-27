@@ -4,7 +4,7 @@ import webbrowser
 import psutil
 import gpu
 from . import view_manager
-from . import tile_group2
+from . import tile_group3
 from . import shader_setup
 from . import cache_manager
 
@@ -60,12 +60,13 @@ class LIDARHD_OT_create_tile_group(bpy.types.Operator):
     def execute(self, context):
         if len(bpy.context.scene.lidar_hd.class_visibility) == 0:
             populate_default_values()
-        if tile_group2.test_tiles is not None:
-            tile_group2.test_tiles.prepare_for_deletion()
+        if tile_group3.test_tiles is not None:
+            tile_group3.test_tiles.prepare_for_deletion()
         try:
-            tile_group2.test_tiles = tile_group2.TileGroup([item.value for item in context.scene.lidar_hd.link_list])
-        except:
-            tile_group2.test_tiles = None
+            tile_group3.test_tiles = tile_group3.TileGroup([item.value for item in context.scene.lidar_hd.link_list])
+        except Exception as e:
+            print(e)
+            tile_group3.test_tiles = None
             
         view_manager.set_trusted_rv3d_to_current()
         
@@ -98,9 +99,9 @@ class LIDARHD_OT_delete_tile_group(bpy.types.Operator):
         return context.window_manager.invoke_confirm(self, event)
 
     def execute(self, context):
-        if tile_group2.test_tiles is not None:
-            tile_group2.test_tiles.prepare_for_deletion()
-            tile_group2.test_tiles = None
+        if tile_group3.test_tiles is not None:
+            tile_group3.test_tiles.prepare_for_deletion()
+            tile_group3.test_tiles = None
             redraw_all_views(self, context)
         context.scene.lidar_hd.link_list.clear()
         return {'FINISHED'}
@@ -115,8 +116,12 @@ class LIDARHD_OT_to_blender_point_cloud(bpy.types.Operator):
         return context.mode == 'OBJECT'
     
     def execute(self, context):
-        if tile_group2.test_tiles is not None:
-            tile_group2.test_tiles.closest_tile_to_point_cloud()
+        if tile_group3.test_tiles is not None:
+            if tile_group3.test_tiles.export_is_available.value == 1:
+                tile_group3.test_tiles.closest_tile_to_point_cloud()
+            else:
+                self.report({'WARNING'}, "Please wait until the point cloud is done loading.")
+                return {'CANCELLED'}
         return {'FINISHED'}
     
 class LIDARHD_OT_open_lidarhd_browser(bpy.types.Operator):
@@ -161,9 +166,10 @@ class LIDARHD_OT_pick_file(bpy.types.Operator):
         
         if contains_download:
             if bpy.app.online_access:
-                bpy.ops.lidarhd.warnbeforecreate('INVOKE_DEFAULT')
+                bpy.ops.lidarhd.warnbeforecreate('INVOKE_DEFAULT') # Warns the user blender will freeze, and downloads
             else:
-                bpy.ops.lidarhd.createtilegroup('EXEC_DEFAULT')
+                # We don't outright cancel the operation, because some tiles might be available in cache without necessitating a download
+                bpy.ops.lidarhd.createtilegroup('EXEC_DEFAULT') # Creates the tile group. cache_manager.py will ignore downloads by itself if online_access is false
                 self.report({"WARNING"}, "Allow online access to download the missing tiles")
         else:
             bpy.ops.lidarhd.createtilegroup('EXEC_DEFAULT')
@@ -233,9 +239,9 @@ def redraw_all_views(self, context):
     
 @bpy.app.handlers.persistent
 def populate_default_values(_=None):
-    if tile_group2.test_tiles is not None:
-        tile_group2.test_tiles.prepare_for_deletion()
-        tile_group2.test_tiles = None
+    if tile_group3.test_tiles is not None:
+        tile_group3.test_tiles.prepare_for_deletion()
+        tile_group3.test_tiles = None
     view_manager.set_trusted_rv3d_to_current()
     bpy.context.scene.lidar_hd.class_visibility.clear()
     for name in ["Unclassified",
@@ -317,7 +323,7 @@ class LIDARHD_PT_sidebar(bpy.types.Panel):
             layout.operator(operator="lidarhd.settrustedarea")
             layout.separator()
             
-        if tile_group2.test_tiles is None and len(lidarctx.link_list) > 0:
+        if tile_group3.test_tiles is None and len(lidarctx.link_list) > 0:
             layout.operator(operator="lidarhd.createtilegroup", icon="FILE_REFRESH")
 
         point_loading_header, point_loading_body = layout.panel("point_loading")
@@ -335,19 +341,19 @@ class LIDARHD_PT_sidebar(bpy.types.Panel):
                 #     point_loading_body.operator(operator="my.test", text=f"Download {lidarctx.link_list_amount} tiles")
             if(lidarctx.loading_mode == "folder"):
                 column.operator(operator="lidarhd.openfolder", icon="FILEBROWSER")
-            # if tile_group2.test_tiles is None and len(lidarctx.link_list) > 0:
+            # if tile_group3.test_tiles is None and len(lidarctx.link_list) > 0:
             #     point_loading_body.operator("lidarhd.createtilegroup", f"Load ")
             # point_loading_body.prop(lidarctx, "texture_resolution", text='Image Resolution: '+str(2**lidarctx.texture_resolution))
             point_loading_body.prop(lidarctx, "target_point_ram_usage")
             if (lidarctx.target_point_ram_usage+2)*1000000000 > psutil.virtual_memory().total:
                 point_loading_body.label(text="Expect extreme slowdowns", icon="WARNING_LARGE")
-            if tile_group2.test_tiles is not None:
-                if tile_group2.test_tiles.tile_ram_target_gb != lidarctx.target_point_ram_usage:
+            if tile_group3.test_tiles is not None:
+                if tile_group3.test_tiles.target_ram_usage != lidarctx.target_point_ram_usage:
                     column = point_loading_body.column(align=True)
                     column.label(text="Ram usage changes need reloading.")
                     column.operator("lidarhd.createtilegroup", text="Reload", icon="FILE_REFRESH")
-                if len(tile_group2.test_tiles.pools[-1]) == 0:
-                    point_loading_body.label(text="RAM target too small for top LOD", icon="WARNING_LARGE")
+                # if len(tile_group3.test_tiles.pools[-1]) == 0:
+                #     point_loading_body.label(text="RAM target too small for top LOD", icon="WARNING_LARGE")
                     
         storage_header, storage_body = layout.panel("storage", default_closed=True)
         storage_header.label(text="Storage")
@@ -400,10 +406,10 @@ class LIDARHD_PT_sidebar(bpy.types.Panel):
                 row.label(text=item.name)
                 
         layout.separator()
-        if view_manager.trusted_area == context.area and tile_group2.test_tiles is not None:
+        if view_manager.trusted_area == context.area and tile_group3.test_tiles is not None:
             layout.operator("lidarhd.toblenderpointcloud")
             layout.separator()
-        if tile_group2.test_tiles is not None:
+        if tile_group3.test_tiles is not None:
             layout.prop(lidarctx, "loading_locked", text="Lock Tile Loading", icon="LOCKED")
             eye_icon = "HIDE_OFF" if lidarctx.visible else "HIDE_ON"
             vis_text = "Hide Point Cloud" if lidarctx.visible else "Show Point Cloud"

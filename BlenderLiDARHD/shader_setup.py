@@ -153,6 +153,21 @@ def load_image_to_gpu(image: np.array) -> TextureHandle:
 
     return TextureHandle(texture, image.shape[0], image.nbytes)
 
+def load_image_to_gpu(image: np.ndarray, resolution: int = None) -> TextureHandle:
+    if resolution is None:
+        resolution = image.shape[0]
+    # the RGBA8 format channel bytes are packed into a R32F channel because Blender only supports uploading FLOAT Buffers
+    # the RGBA8 channels are unpacked in the fragment shader
+    texture = gpu.types.GPUTexture(
+        size=(resolution, resolution),
+        format="R32F",
+        data=gpu.types.Buffer('FLOAT', image.size, image)
+    )
+
+    print("DONE LOADING IMAGE TO GPU")
+
+    return TextureHandle(texture, resolution, image.nbytes)
+
 def get_bit_field_for_visibility(visibility):
     result = 0
     for i in range(len(visibility)):

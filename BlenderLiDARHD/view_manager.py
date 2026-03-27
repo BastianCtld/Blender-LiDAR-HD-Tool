@@ -4,6 +4,7 @@ import numpy as np
 trusted_area = None
 trusted_rv3d = None
 camera_pivot_position = np.array([0, 0, 0])
+camera_is_moving = False
 
 def set_trusted_rv3d_to_current(_ = None, __ = None):
     global trusted_rv3d, trusted_area
@@ -29,5 +30,10 @@ def set_trusted_rv3d(area):
 def update_camera_pivot_position():
     global camera_pivot_position
     if trusted_rv3d is not None:
-        camera_pivot_position = np.array(trusted_rv3d.view_location)
+        new_position = np.array(trusted_rv3d.view_location)
+        if (camera_pivot_position==new_position).all():
+            camera_is_moving = False
+        else:
+            camera_is_moving = True
+            camera_pivot_position = new_position
         #print(camera_pivot_position)

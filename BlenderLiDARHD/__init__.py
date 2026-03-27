@@ -22,9 +22,9 @@ bl_info = {
     "category": "Generic",
 }
 
-# from . import auto_load
+
 from . import interface
-from . import tile_group2
+from . import tile_group3
 from . import view_manager
 from . import cache_manager
 import bpy
@@ -38,7 +38,7 @@ def create_cache_directories():
 
 
 class LidarHDToolPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
+    bl_idname = __package__
 
     cache_dir: bpy.props.StringProperty(
         name="Cache Folder",
@@ -146,7 +146,6 @@ def register():
     bpy.app.translations.register(__name__, translation_dict)
     create_cache_directories()
     interface.register()
-    bpy.types.SpaceView3D.draw_handler_add(view_manager.update_camera_pivot_position, (), 'WINDOW', 'POST_VIEW')
     bpy.app.handlers.load_post.append(view_manager.set_trusted_rv3d_to_current)
     bpy.app.timers.register(interface.populate_default_values, first_interval=1.0)
  
@@ -154,7 +153,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(LidarHDToolPreferences)
     bpy.app.translations.unregister(__name__)
-    if tile_group2.test_tiles is not None:
-        tile_group2.test_tiles.prepare_for_deletion()
-        tile_group2.test_tiles = None
+    if tile_group3.test_tiles is not None:
+        tile_group3.test_tiles.prepare_for_deletion()
+        tile_group3.test_tiles = None
     interface.unregister()
