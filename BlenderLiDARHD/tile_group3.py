@@ -10,11 +10,13 @@ from . import cache_manager
 import sys
 from pathlib import Path
 
+# We need to load the tile_group_process and tile_group_types modules from the root of sys.path so as for them to not be bundled in bl_ext
+# when we spawn and communicate with the loading process
 lidarhd_ext_dir = str(Path(__file__).parent / "folder_to_expose")
-print(lidarhd_ext_dir)
 sys.path.insert(0, lidarhd_ext_dir)
 from lidarhd_ext.tile_group_process import loading_process
 from lidarhd_ext.tile_group_types import TileDrawingData, AddonStatePack
+sys.path.remove(lidarhd_ext_dir)
 
 class TileGroup():
     
@@ -57,6 +59,7 @@ class TileGroup():
         self.image_loading_pipe, loading_process_image_loading_pipe = ctx.Pipe()
         self.export_is_available = ctx.Value('b', 0)
         
+        sys.path.insert(0, lidarhd_ext_dir)
         self.loading_process = ctx.Process(target=loading_process, args=(
             self.target_ram_usage,
             self.tile_paths,
@@ -68,11 +71,12 @@ class TileGroup():
             self.export_is_available
         ))
         self.loading_process.start()
+        sys.path.remove(lidarhd_ext_dir)
         
         # because the loading process holds all the COPCReaders, it also creates the TileDrawingData objects and sends them to us
-        print("Now waiting for drawing data...")
+        # print("Now waiting for drawing data...")
         self.path_to_tile_drawing_data = self.tile_batching_pipe.recv()
-        print(f"Received {len(self.path_to_tile_drawing_data)} tiles!")
+        # print(f"Received {len(self.path_to_tile_drawing_data)} tiles!")
         
         min_x = np.inf
         max_x = -np.inf
@@ -95,14 +99,14 @@ class TileGroup():
         # it returns to use the name of the process to connect to, and the dtype of the points
         # which it knows by querying one of the tiles
         
-        print("Waiting to receive process name and dtype...")
+        # print("Waiting to receive process name and dtype...")
         (shared_memory_name, dtype, array_size) = self.tile_batching_pipe.recv()
-        print(f"received {shared_memory_name}!")
+        # print(f"received {shared_memory_name}!")
         
         self.shared_memory = shared_memory.SharedMemory(name=shared_memory_name)
         
         self.array_for_batching = np.frombuffer(self.shared_memory.buf[:array_size], dtype=dtype)
-        print("Successfully tied the array for batching ")
+        # print("Successfully tied the array for batching ")
         
         self.path_to_batch = {}
         self.path_to_texture = {}
@@ -111,26 +115,26 @@ class TileGroup():
             self.path_to_texture[path] = black_texture
         
         self.draw_handler = bpy.types.SpaceView3D.draw_handler_add(self.draw, (), 'WINDOW', 'POST_VIEW')
-        print("Drawing handler added !")
+        # print("Drawing handler added !")
     
     def draw(self):
-        print("drawing")
+        # print("drawing")
         view_manager.update_camera_pivot_position()
         if not bpy.context.scene.lidar_hd.visible:
             return
         
         if self.tile_batching_pipe.poll(): # if the loading process has sent someting in that pipe, signaling array_for_batching is ready
-            print("Starting to batch")
+            # print("Starting to batch")
             if (received := self.tile_batching_pipe.recv()) is not None: # I replaced the while with an if to allow for drawing to occur in-between batches
                 (tile_path, level_once_batched) = received
                 end_vertex_index = self.path_to_tile_drawing_data[tile_path].level_vertex_indices[level_once_batched]
                 self.path_to_batch[tile_path] = shader_setup.generate_batch(self.array_for_batching[:end_vertex_index])
                 self.path_to_tile_drawing_data[tile_path].loaded_level = level_once_batched
                 self.tile_batching_pipe.send(1) # we send whatever to signal to the loading process we are ready for the next tile
-            print("Done batching")
+            # print("Done batching")
         
         if self.image_loading_pipe.poll():
-            print("Starting to load images")
+            # print("Starting to load images")
             if (received := self.image_loading_pipe.recv()) is not None:
                 (tile_path, resolution, image_byte_size) = received
                 array = np.frombuffer(self.shared_memory.buf[:image_byte_size], dtype=np.float32)
@@ -140,9 +144,9 @@ class TileGroup():
         #print("Main process checks if state pipe is full")
         if self.state_pipe.poll() and not view_manager.camera_is_moving and not bpy.context.scene.lidar_hd.loading_locked: # If the loading process has signaled it wants a new state pack
             # we also check if the camera is moving so we don't ask the loading process to load when we're not done translating the camera around
-            print("it is !")
+            # print("it is !")
             self.state_pipe.recv()
-            print("Main process sends addonstatepack")
+            # print("Main process sends addonstatepack")
             self.state_pipe.send(AddonStatePack(
                 view_manager.camera_pivot_position,
                 list(bpy.context.scene.lidar_hd.minimum_radii),
@@ -211,7 +215,7 @@ class TileGroup():
         if closest_tile.loaded_level is None:
             return
         
-        print("I sent the loading process the path of the closest tile so it loads it in the shared memory")
+        # print("I sent the loading process the path of the closest tile so it loads it in the shared memory")
         self.tile_export_pipe.send(closest_path)
         
         # We wait until the loading process sends whatever back to signal it's done writing in the shared memory

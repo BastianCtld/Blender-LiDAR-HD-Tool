@@ -17,12 +17,12 @@ def converted_to_cached_tile_paths(paths: list[str], caching = True) -> list[str
     converted_paths = []
     threads: list[threading.Thread] = []
     for path in paths:
-        print(f"handling {path}")
+        # print(f"handling {path}")
         if "http" in path:
             filename = path.split("/")[-1]
             potentially_cached_file_name = get_cache_tile_dir() + "/" + filename
             if(os.path.exists(potentially_cached_file_name)):
-                print(f"Found cached version of {path}")
+                # print(f"Found cached version of {path}")
                 converted_paths.append(potentially_cached_file_name)
             else:
                 # the point cloud is not cached

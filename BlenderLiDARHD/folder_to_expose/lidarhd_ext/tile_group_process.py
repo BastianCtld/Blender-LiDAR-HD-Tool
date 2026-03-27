@@ -3,6 +3,14 @@ import laspy
 from multiprocessing import shared_memory, connection, Value
 import time
 
+
+# This loading process stores all the tiles that are loaded, and handles all the loading and unloading of tiles
+# based on the camera position and general Blender states which gets fed to it on draw() by the TileGroup that spawned it
+# It is responsible for feeding the TileGroup with tile points and textures through a shared memory buffer.
+# This buffer was initially only supposed to hold points, to let TileGroup construct GPUBatches out of.
+# It has been loaded with more functionality, as it is also responsible for passing RGBA8 textures,
+# and for holding the point clouds when TileGroup needs to export one to Blender's native point clouds.
+# It synchronizes with the TileGroup with pipes.
 def loading_process(target_ram_usage: int,
                     converted_paths: list[str],
                     tile_batching_pipe: connection.Connection,
@@ -65,7 +73,7 @@ def loading_process(target_ram_usage: int,
             return None
         
         cursor = 0
-        print(f"setting shared memory for tile {tile.level_point_counts[0]}")
+        # print(f"setting shared memory for tile {tile.level_point_counts[0]}")
         for level in range(len(tile.level_point_counts)):
             for i in range(len(pool_occupancy_list[level])):
                 if pool_occupancy_list[level][i] == tile:
@@ -98,7 +106,7 @@ def loading_process(target_ram_usage: int,
                 pass
                 # print(f"I need to stop because I have {remaining_ram/1000000000} GB remaining")
         
-        print("Computed block counts")
+        # print("Computed block counts")
         # print(dtype.fields)
         return block_counts
     
@@ -113,7 +121,7 @@ def loading_process(target_ram_usage: int,
             tile.loaded_image_res = resolution
         tile.array_is_loading = False
     
-    print("LOADING PROCESS STARTED SUCCESSFULLY")
+    # print("LOADING PROCESS STARTED SUCCESSFULLY")
     
     if len(converted_paths) < 1:
         raise RuntimeError
@@ -160,7 +168,7 @@ def loading_process(target_ram_usage: int,
     
     shm = shared_memory.SharedMemory(create=True, size=max(dtype.itemsize*largest_point_count, byte_size_of_largest_texture), track=True)
     # the shared memory block is at minimum the size of a 4096 texture, so we can still write texture in it even if no tile is that big for some reason
-    print("Loading process created the shared memory. It sends the name and dtype through the tile batching pip")
+    # print("Loading process created the shared memory. It sends the name and dtype through the tile batching pip")
     tile_batching_pipe.send((shm.name, dtype, dtype.itemsize*largest_point_count)) # shared mem name, dtype of points, byte size of array_for_batching
     
     # find the largest tile point count at each level
@@ -188,7 +196,7 @@ def loading_process(target_ram_usage: int,
         pool_occupancy_list.append([None] * pool_block_counts[i])
         total_space += pool.nbytes
     
-    print(f"my pools occupy {total_space/1000000000} GB")
+    # print(f"my pools occupy {total_space/1000000000} GB")
     
     array_for_batching = np.frombuffer(shm.buf[:dtype.itemsize*largest_point_count], dtype=dtype)
     
@@ -209,11 +217,11 @@ def loading_process(target_ram_usage: int,
     global_center = np.array([(min_x+max_x)*0.5, (min_y+max_y)*0.5, (min_z+max_z)*0.5])
     
     while True:
-        print("Loading process sends that it's ready")
+        # print("Loading process sends that it's ready")
         state_pipe.send(1) # We signal we are ready to receive a new state pack
         export_is_availabe.value = 1
         
-        print("Loading process waits for response")
+        # print("Loading process waits for response")
         while not (state_pipe.poll() or tile_export_pipe.poll()):
             time.sleep(0.1)
             
@@ -234,12 +242,10 @@ def loading_process(target_ram_usage: int,
         
         
         addon_state: AddonStatePack = state_pipe.recv() # blocks until we receive a new state
-        print("Loading process got response")
+        # print("Loading process got response")
         
-        if not loading_needed(addon_state, tiles, global_center, pool_occupancy_list):
-            print("Loading not needed")
-        else:
-            print("loading needed")
+        if loading_needed(addon_state, tiles, global_center, pool_occupancy_list):
+            # print("loading needed")
             export_is_availabe.value = 0
             tiles_to_load: list[list[TileLoadingData]] = get_all_tiles_to_load(addon_state, tiles, pools, pool_block_sizes, global_center)
             tile_indices_to_load: dict[TileLoadingData, dict[int, int]] = {}
