@@ -16,6 +16,9 @@ def get_cache_texture_dir():
 def converted_to_cached_tile_paths(paths: list[str], caching = True) -> list[str]:
     converted_paths = []
     threads: list[threading.Thread] = []
+    # I'm unsure if accessing anything related to bpy, even this read-only bool, is allowed when threads are running
+    # so here's my attempt at covering for that and avoiding "pass by reference"
+    online_access = True if bpy.app.online_access else False
     for path in paths:
         # print(f"handling {path}")
         if "http" in path:
@@ -28,7 +31,7 @@ def converted_to_cached_tile_paths(paths: list[str], caching = True) -> list[str
                 # the point cloud is not cached
                 print(f"{path} is not cached")
                 if caching:
-                    if not bpy.app.online_access:
+                    if not online_access:
                         continue # If internet acces is not allowed and I'm about to download that tile, don't
                     new_thread = threading.Thread(target=point_cloud_get_thread, args=(path, potentially_cached_file_name, converted_paths))
                     new_thread.start()

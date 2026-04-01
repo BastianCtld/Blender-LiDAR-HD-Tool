@@ -152,8 +152,24 @@ def loading_process(target_ram_usage: int,
     if len(tiles) == 0:
         raise RuntimeError
     
+    min_x = np.inf
+    max_x = -np.inf
+    min_y = np.inf
+    max_y = -np.inf
+    min_z = np.inf
+    max_z = -np.inf
+    for tile in tiles:
+        min_x = np.min([min_x, tile.reader.copc_info.center[0]])
+        max_x = np.max([max_x, tile.reader.copc_info.center[0]])
+        min_y = np.min([min_y, tile.reader.copc_info.center[1]])
+        max_y = np.max([max_y, tile.reader.copc_info.center[1]])
+        min_z = np.min([min_z, tile.reader.copc_info.center[2]])
+        max_z = np.max([max_z, tile.reader.copc_info.center[2]])
+            
+    global_center = np.array([(min_x+max_x)*0.5, (min_y+max_y)*0.5, (min_z+max_z)*0.5])
+    
     # we send the drawing data to the main process, which uses this data to draw the tiles correctly
-    tile_batching_pipe.send(drawing_data_to_send)
+    tile_batching_pipe.send((drawing_data_to_send, global_center))
     del drawing_data_to_send # not necessary but I won't need them afterwards and they shouldn't be here so it's cleaner this way
     
     
@@ -199,22 +215,6 @@ def loading_process(target_ram_usage: int,
     # print(f"my pools occupy {total_space/1000000000} GB")
     
     array_for_batching = np.frombuffer(shm.buf[:dtype.itemsize*largest_point_count], dtype=dtype)
-    
-    min_x = np.inf
-    max_x = -np.inf
-    min_y = np.inf
-    max_y = -np.inf
-    min_z = np.inf
-    max_z = -np.inf
-    for tile in tiles:
-        min_x = np.min([min_x, tile.reader.copc_info.center[0]])
-        max_x = np.max([max_x, tile.reader.copc_info.center[0]])
-        min_y = np.min([min_y, tile.reader.copc_info.center[1]])
-        max_y = np.max([max_y, tile.reader.copc_info.center[1]])
-        min_z = np.min([min_z, tile.reader.copc_info.center[2]])
-        max_z = np.max([max_z, tile.reader.copc_info.center[2]])
-            
-    global_center = np.array([(min_x+max_x)*0.5, (min_y+max_y)*0.5, (min_z+max_z)*0.5])
     
     while True:
         # print("Loading process sends that it's ready")

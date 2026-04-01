@@ -75,24 +75,8 @@ class TileGroup():
         
         # because the loading process holds all the COPCReaders, it also creates the TileDrawingData objects and sends them to us
         # print("Now waiting for drawing data...")
-        self.path_to_tile_drawing_data = self.tile_batching_pipe.recv()
+        (self.path_to_tile_drawing_data, self.global_center) = self.tile_batching_pipe.recv()
         # print(f"Received {len(self.path_to_tile_drawing_data)} tiles!")
-        
-        min_x = np.inf
-        max_x = -np.inf
-        min_y = np.inf
-        max_y = -np.inf
-        min_z = np.inf
-        max_z = -np.inf
-        for tile in self.path_to_tile_drawing_data.values():
-            min_x = np.min([min_x, tile.center[0]])
-            max_x = np.max([max_x, tile.center[0]])
-            min_y = np.min([min_y, tile.center[1]])
-            max_y = np.max([max_y, tile.center[1]])
-            min_z = np.min([min_z, tile.center[2]])
-            max_z = np.max([max_z, tile.center[2]])
-           
-        self.global_center = np.array([(min_x+max_x)*0.5, (min_y+max_y)*0.5, (min_z+max_z)*0.5])
         
         # The shared memory is created by the loading process
         # because it is the one who knows how long the buffer needs to be to hold the largest tile
