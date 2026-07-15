@@ -32,7 +32,7 @@ void main() {
     // if(uv.y >= 1) {
     //     FragColor = vec4(1,1,1,1);
     // } else {
-    //     FragColor = color;//*brightness;
+    //     FragColor = color;// *brightness;
     // }
     FragColor = color;//;*brightness;
     //FragColor = vec4(uv.x,uv.y,0,1);
