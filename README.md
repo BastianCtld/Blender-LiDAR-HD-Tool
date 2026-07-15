@@ -54,9 +54,9 @@ A "LiDAR HD" tab should be present.
 
 - Select the tiles you wish to see, and click on the download icon on the right side of the page. Choose "Liens de téléchargement".
 
-- This will download a text file containing a list of tiles to load.
+- This will download a json file containing a list of tiles to load.
 
-- Back in Blender, click on "Load a dalle.txt..." and point to the text file you just downloaded.
+- Back in Blender, click on "Load a metadonnees.json..." and point to the text file you just downloaded.
 
 Blender will download the tiles listed. Once downloaded, they will show in the 3D viewport once you move around your camera around.
 
