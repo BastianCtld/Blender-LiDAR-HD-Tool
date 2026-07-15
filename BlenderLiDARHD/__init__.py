@@ -57,7 +57,7 @@ translation_dict = {
         ("Operator", "Are you sure?"):                          "Êtes-vous sûr ?",
         ("Operator", "Nearest Tile to Blender Point Cloud"):    "Tuile → Nuage de Points Blender",
         ("Operator", "Open the Dowload Interface..."):          "Interface de Téléchargement",
-        ("Operator", "Load a dalle.txt..."):                    "Charger un dalle.txt...",
+        ("Operator", "Load a metadonnees.json..."):                    "Charger un metadonnees.json...",
         ("Operator", "Select a folder..."):                     "Choisir un dossier...",
         ("Operator", "Load tiles based on this view"):          "Charger les tuiles selon cette vue",
         ("Operator", "Open Cache Folder"):                      "Ouvrir le Dossier de Cache",
@@ -108,8 +108,8 @@ translation_dict = {
             "Convertit la tuile la plus proche du pivot de la vue en nuage de points natif Blender.",
         ("*", "Opens the official Downloading Interface in a new browser tab."):
             "Ouvre l'interface de téléchargement officielle de l'IGN dans un nouvel onglet de votre navigateur.",
-        ("*", "Point to the dalle.txt file you obtained from the LiDAR HD Downloading Interface"):
-            "Sélectionner le fichier dalle.txt obtenu depuis l'interface de téléchargement LiDAR HD.",
+        ("*", "Point to the metadonnees.json file you obtained from the LiDAR HD Downloading Interface"):
+            "Sélectionner le fichier metadonnees.json obtenu depuis l'interface de téléchargement LiDAR HD.",
         ("*", "Point to a folder containing already downloaded COPC LAZ files."):
             "Sélectionner un dossier contenant des fichiers COPC LAZ déjà téléchargés.",
             
