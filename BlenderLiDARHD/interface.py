@@ -136,8 +136,8 @@ class LIDARHD_OT_open_lidarhd_browser(bpy.types.Operator):
 
 class LIDARHD_OT_pick_file(bpy.types.Operator):
     bl_idname = "lidarhd.openlist"
-    bl_label = "Load a dalle.txt..."
-    bl_description = "Point to the dalle.txt file you obtained from the LiDAR HD Downloading Interface"
+    bl_label = "Load a metadonnees.json..."
+    bl_description = "Point to the metadonnees.json file you obtained from the LiDAR HD Downloading Interface"
 
     filepath: bpy.props.StringProperty(
         subtype="FILE_PATH"
