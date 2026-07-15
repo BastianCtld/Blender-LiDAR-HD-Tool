@@ -17,9 +17,9 @@ int classification_to_bit_pos(uint cls) {
 }
 
 void main() {
-    const vec3 scale = vec3(0.01, 0.01, 0.01);
-    const ivec3 inverseScale = ivec3(int(1/scale.x), int(1/scale.y), int(1/scale.z));
-    vec3 pos = vec3(X + int(offset.x)*inverseScale.x, Y + int(offset.y)*inverseScale.y, Z + int(offset.z)*inverseScale.z) * scale;
+    const float scale = 0.01;
+    const int inverseScale = 100;
+    vec3 pos = vec3(X + int(offset.x)*inverseScale, Y + int(offset.y)*inverseScale, Z + int(offset.z)*inverseScale) * scale;
     uint intensity = pack1 & 0xFFFFu;
     uint classification = (pack1 >> 16) & 0xFFu;
 

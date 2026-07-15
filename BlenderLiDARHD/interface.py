@@ -7,6 +7,7 @@ from . import view_manager
 from . import tile_group3
 from . import shader_setup
 from . import cache_manager
+from .tile_links_retriever import add_links_to_link_list_from_metadonnees
 
 ram_amount = psutil.virtual_memory().total
 
@@ -143,7 +144,7 @@ class LIDARHD_OT_pick_file(bpy.types.Operator):
     )
 
     filter_glob: bpy.props.StringProperty(
-        default="*dalles*.txt",
+        default="*.json",
         options={'HIDDEN'}
     )
 
@@ -154,10 +155,7 @@ class LIDARHD_OT_pick_file(bpy.types.Operator):
     def execute(self, context):
         print("Selected file:", self.filepath)
         context.scene.lidar_hd.link_list.clear()
-        with open(self.filepath) as f:
-            for line in f.readlines():
-                item = context.scene.lidar_hd.link_list.add()
-                item.value = line.strip()
+        add_links_to_link_list_from_metadonnees(context, self.filepath)
         print(f"the link list is {context.scene.lidar_hd.link_list}")
         contains_download = False
         for path in cache_manager.converted_to_cached_tile_paths([item.value for item in context.scene.lidar_hd.link_list], caching=False):
